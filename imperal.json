@@ -1,9 +1,66 @@
 {
   "app_id": "ocr-tool",
   "version": "1.0.0",
+  "capabilities": [],
+  "tools": [
+    {
+      "name": "ocr",
+      "description": "Extract text from images. Upload screenshots, photos, documents, receipts, handwritten notes — get accurate, copyable text back.",
+      "scopes": [
+        "*"
+      ],
+      "parameters": {
+        "message": {
+          "type": "string",
+          "required": false
+        },
+        "kwargs": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "__panel__workspace",
+      "description": "Panel: OCR Tool",
+      "scopes": [],
+      "parameters": {
+        "params": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "__panel__sidebar",
+      "description": "Panel: OCR Tool",
+      "scopes": [],
+      "parameters": {
+        "params": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  ],
+  "signals": [],
+  "schedules": [],
+  "required_scopes": [
+    "*"
+  ],
+  "config_defaults": {
+    "default_format": "plain",
+    "default_language": "auto",
+    "save_history": true
+  },
   "name": "OCR Tool",
   "description": "Extract text from any image. Upload screenshots, photos, or documents — get copyable text instantly.",
   "icon": "scan",
   "category": "productivity",
-  "tags": ["ocr", "text-extraction", "images", "productivity"]
+  "tags": [
+    "ocr",
+    "text-extraction",
+    "images",
+    "productivity"
+  ]
 }
