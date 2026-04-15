@@ -1,0 +1,9 @@
+{
+  "app_id": "ocr-tool",
+  "version": "1.0.0",
+  "name": "OCR Tool",
+  "description": "Extract text from any image. Upload screenshots, photos, or documents — get copyable text instantly.",
+  "icon": "scan",
+  "category": "productivity",
+  "tags": ["ocr", "text-extraction", "images", "productivity"]
+}
