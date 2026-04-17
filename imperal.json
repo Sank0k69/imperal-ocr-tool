@@ -1,66 +1,47 @@
 {
   "app_id": "ocr-tool",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "Image-to-text extraction via Tesseract on our server. No AI tokens.",
+  "category": "tools",
   "capabilities": [],
   "tools": [
     {
       "name": "ocr",
-      "description": "Extract text from images. Upload screenshots, photos, documents, receipts, handwritten notes — get accurate, copyable text back.",
+      "description": "Image-to-text extraction. Runs Tesseract on our server, no AI quota burned.",
       "scopes": [
-        "*"
+        "store.read",
+        "store.write",
+        "http.request"
       ],
       "parameters": {
-        "message": {
-          "type": "string",
-          "required": false
-        },
-        "kwargs": {
-          "type": "string",
-          "required": true
-        }
+        "message": {"type": "string", "required": false},
+        "kwargs": {"type": "string", "required": true}
       }
     },
     {
       "name": "__panel__workspace",
-      "description": "Panel: OCR Tool",
+      "description": "Panel: OCR Tool workspace",
       "scopes": [],
-      "parameters": {
-        "params": {
-          "type": "string",
-          "required": true
-        }
-      }
+      "parameters": {"params": {"type": "string", "required": false}}
     },
     {
       "name": "__panel__sidebar",
-      "description": "Panel: OCR Tool",
+      "description": "Panel: Sidebar",
       "scopes": [],
-      "parameters": {
-        "params": {
-          "type": "string",
-          "required": true
-        }
-      }
+      "parameters": {"params": {"type": "string", "required": false}}
+    },
+    {
+      "name": "__panel__settings",
+      "description": "Panel: Settings",
+      "scopes": [],
+      "parameters": {"params": {"type": "string", "required": false}}
     }
   ],
   "signals": [],
   "schedules": [],
   "required_scopes": [
-    "*"
-  ],
-  "config_defaults": {
-    "default_format": "plain",
-    "default_language": "auto",
-    "save_history": true
-  },
-  "name": "OCR Tool",
-  "description": "Extract text from any image. Upload screenshots, photos, or documents — get copyable text instantly.",
-  "icon": "scan",
-  "category": "productivity",
-  "tags": [
-    "ocr",
-    "text-extraction",
-    "images",
-    "productivity"
+    "store.read",
+    "store.write",
+    "http.request"
   ]
 }

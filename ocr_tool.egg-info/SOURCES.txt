@@ -1,0 +1,15 @@
+README.md
+api_client.py
+app.py
+handlers.py
+main.py
+panels_main.py
+panels_side.py
+params.py
+pyproject.toml
+ocr_tool.egg-info/PKG-INFO
+ocr_tool.egg-info/SOURCES.txt
+ocr_tool.egg-info/dependency_links.txt
+ocr_tool.egg-info/requires.txt
+ocr_tool.egg-info/top_level.txt
+tests/test_handlers.py
