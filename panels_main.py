@@ -1,7 +1,7 @@
 """Central workspace panel — drop image + see text."""
-# `from __future__ import annotations` keeps type hints (incl. ui.UINode) as strings
-# so they don't need to resolve at import time. V6 only inspects @chat.function
-# handlers which live in handlers.py, so this is safe here.
+# `from __future__ import annotations` keeps type hints as strings so forward
+# refs like ui.UINode don't need to resolve at import time. V6 only inspects
+# @chat.function handlers (which live in handlers.py), so this is safe here.
 from __future__ import annotations
 
 from imperal_sdk import ui
@@ -10,11 +10,11 @@ from app import ext, load_settings, server_ready, HISTORY_COLLECTION
 
 
 def _config_prompt() -> ui.UINode:
-    return ui.Stack([
-        ui.Header("OCR Tool", level=3),
+    return ui.Stack(children=[
+        ui.Header(text="OCR Tool", level=3),
         ui.Alert(
-            "Configure the server URL and API key in Settings (right panel) first.",
-            variant="warning",
+            message="Configure the server URL and API key in Settings (right panel) first.",
+            type="warning",
         ),
     ])
 
@@ -25,23 +25,28 @@ def _upload_card(s: dict) -> ui.UINode:
             accept="image/*",
             max_size_mb=10,
             max_files=1,
-            on_upload=ui.Call("extract", image_b64="$value", language=s.get("default_language", "auto")),
+            on_upload=ui.Call(
+                "extract",
+                image_b64="$value",
+                language=s.get("default_language", "auto"),
+            ),
             param_name="image_b64",
         ),
         ui.Text(
-            "Supported: PNG, JPG, WebP, TIFF. Languages installed on server: English, Russian, Spanish, German, French.",
-            variant="muted", size="sm",
+            content=("Supported: PNG, JPG, WebP, TIFF. Languages installed on server: "
+                     "English, Russian, Spanish, German, French."),
+            variant="caption",
         ),
     ])
 
 
 def _quick_actions() -> ui.UINode:
-    return ui.Stack([
-        ui.Button("Screenshot OCR", icon="Monitor", variant="secondary",
+    return ui.Stack(children=[
+        ui.Button(label="Screenshot OCR", icon="Monitor", variant="secondary",
                   on_click=ui.Send(message="Extract text from my screenshot")),
-        ui.Button("Receipt / Invoice", icon="Receipt", variant="secondary",
+        ui.Button(label="Receipt / Invoice", icon="Receipt", variant="secondary",
                   on_click=ui.Send(message="Extract structured data from a receipt")),
-        ui.Button("Document (preserve layout)", icon="FileText", variant="secondary",
+        ui.Button(label="Document (preserve layout)", icon="FileText", variant="secondary",
                   on_click=ui.Send(message="Extract text from a document, keep columns/tables")),
     ], direction="horizontal")
 
@@ -58,7 +63,7 @@ def _history_list(items: list[dict]) -> ui.UINode:
             subtitle=(h.get("text", "") or "")[:80],
             meta=h.get("language", ""),
             icon="FileText",
-            badge=ui.Badge(h.get("language", "—"), color="blue"),
+            badge=ui.Badge(label=h.get("language", "—"), color="blue"),
         ))
     return ui.List(items=list_items, searchable=True)
 
@@ -71,7 +76,6 @@ async def workspace_panel(ctx):
     if not server_ready(s):
         return _config_prompt()
 
-    # History
     page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=50)
     docs = getattr(page, "data", []) if page is not None else []
     items = sorted(
@@ -81,7 +85,7 @@ async def workspace_panel(ctx):
     )
     word_total = sum(i.get("word_count", 0) for i in items)
 
-    stats = ui.Stats(items=[
+    stats = ui.Stats(children=[
         ui.Stat(label="Extractions", value=str(len(items)), color="blue"),
         ui.Stat(label="Total words", value=str(word_total), color="violet"),
         ui.Stat(label="Server", value="OK" if server_ready(s) else "—",
@@ -89,7 +93,7 @@ async def workspace_panel(ctx):
     ])
 
     tabs = ui.Tabs(tabs=[
-        {"label": "Extract", "content": ui.Stack([
+        {"label": "Extract", "content": ui.Stack(children=[
             _upload_card(s),
             ui.Divider(),
             _quick_actions(),
@@ -97,9 +101,9 @@ async def workspace_panel(ctx):
         {"label": f"History ({len(items)})", "content": _history_list(items)},
     ], default_tab=0)
 
-    return ui.Stack([
-        ui.Header("OCR Tool", level=2),
-        ui.Text("Tesseract on our server. No AI tokens.", variant="muted"),
+    return ui.Stack(children=[
+        ui.Header(text="OCR Tool", level=2),
+        ui.Text(content="Tesseract on our server. No AI tokens.", variant="caption"),
         ui.Divider(),
         stats,
         ui.Divider(),
