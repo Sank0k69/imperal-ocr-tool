@@ -15,14 +15,6 @@ LANG_OPTIONS = [
 ]
 
 
-def _field(label: str, value: str, placeholder: str, param_name: str) -> ui.UINode:
-    """Labelled Input (Input has no label prop — stack a Text above)."""
-    return ui.Stack(children=[
-        ui.Text(content=label, variant="caption"),
-        ui.Input(value=value, placeholder=placeholder, param_name=param_name),
-    ])
-
-
 @ext.panel("sidebar", slot="left", title="OCR Tool", icon="Scan",
            default_width=220)
 async def sidebar_panel(ctx):
@@ -65,6 +57,8 @@ def _masked(value: str) -> str:
 @ext.panel("settings", slot="right", title="Settings", icon="Settings",
            default_width=300, refresh="on_event:ocr.settings.saved")
 async def settings_panel(ctx):
+    """Right-side settings. Inputs are DIRECT children of ui.Form — wrapping
+    them in Stacks would drop the values from the submit payload."""
     s = await load_settings(ctx)
 
     status = ui.Badge(
@@ -77,22 +71,28 @@ async def settings_panel(ctx):
         submit_label="Save",
         children=[
             ui.Header(text="Server", level=5),
-            _field("Server URL", s.get("server_url", ""),
-                   "https://mos.lexa-lox.xyz", "server_url"),
-            _field("Server API Key", "",
-                   _masked(s.get("server_api_key", "")) or "paste from VPS .env",
-                   "server_api_key"),
-
-            ui.Divider(),
-            ui.Header(text="Defaults", level=5),
-            ui.Stack(children=[
-                ui.Text(content="Default language", variant="caption"),
-                ui.Select(
-                    param_name="default_language",
-                    options=LANG_OPTIONS,
-                    value=s.get("default_language", "auto"),
+            ui.Input(
+                placeholder="Server URL — https://mos.lexa-lox.xyz",
+                value=s.get("server_url", ""),
+                param_name="server_url",
+            ),
+            ui.Input(
+                placeholder=(
+                    f"Server API Key — current {_masked(s.get('server_api_key', ''))}"
+                    if s.get("server_api_key")
+                    else "Server API Key — paste from VPS .env"
                 ),
-            ]),
+                value="",
+                param_name="server_api_key",
+            ),
+
+            ui.Header(text="Defaults", level=5),
+            ui.Select(
+                param_name="default_language",
+                options=LANG_OPTIONS,
+                value=s.get("default_language", "auto"),
+                placeholder="Default language",
+            ),
             ui.Toggle(
                 param_name="preserve_layout",
                 label="Preserve document layout (columns/tables)",
