@@ -3,7 +3,7 @@ name = "ocr-tool"
 version = "2.0.0"
 description = "Image-to-text extraction via Tesseract on our server. No AI tokens."
 requires-python = ">=3.10"
-dependencies = ["imperal-sdk>=1.5.6"]
+dependencies = ["imperal-sdk>=1.5.12"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
