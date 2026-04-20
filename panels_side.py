@@ -55,12 +55,14 @@ async def sidebar_panel(ctx):
 # ─────────────── Right workspace (tabs) ────────────────
 
 def _drop_zone(s: dict) -> ui.UINode:
+    # FileUpload auto-injects the file's base64 into the on_upload Call under
+    # param_name. Do NOT pass image_b64 explicitly — "$value" is not a
+    # recognized template, it would arrive as the literal string.
     return ui.FileUpload(
         accept="image/*",
         max_size_mb=10,
         max_files=1,
         on_upload=ui.Call("extract",
-                          image_b64="$value",
                           language=s.get("default_language", "auto"),
                           preserve_layout=bool(s.get("preserve_layout", False))),
         param_name="image_b64",
