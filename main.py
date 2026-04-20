@@ -26,4 +26,4 @@ async def on_install(ctx):
 @ext.health_check
 async def health(ctx):
     from imperal_sdk.types import ActionResult
-    return ActionResult.success(data={"version": "2.1.0"})
+    return ActionResult.success(data={"version": "2.1.1"})
