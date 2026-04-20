@@ -17,7 +17,12 @@ async def call_mos(ctx, endpoint: str, payload: dict | None = None) -> dict:
         timeout=TIMEOUT,
     )
     if not resp.ok:
-        return {"error": f"server {resp.status_code}: {(resp.text or '')[:200]}"}
+        # HTTPResponse.text is a METHOD in the SDK, not a property.
+        try:
+            body = resp.text()[:200]
+        except Exception:
+            body = ""
+        return {"error": f"server {resp.status_code}: {body}"}
     return resp.json()
 
 
