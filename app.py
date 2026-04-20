@@ -18,8 +18,7 @@ chat = ChatExtension(
     max_rounds=4,
 )
 
-SETTINGS_COLLECTION = "ocr_tool"
-SETTINGS_KEY = "settings"
+SETTINGS_COLLECTION = "ocr_settings"
 HISTORY_COLLECTION = "ocr_history"
 
 DEFAULT_SETTINGS = {
@@ -32,31 +31,30 @@ DEFAULT_SETTINGS = {
 
 
 async def load_settings(ctx) -> dict:
+    """One doc per user — find it via query rather than a fixed key.
+    ``ctx.store.create`` assigns a server-side id we cannot override, so
+    using a known key with ``ctx.store.get`` is unreliable across save cycles."""
     try:
-        doc = await ctx.store.get(SETTINGS_COLLECTION, SETTINGS_KEY)
+        page = await ctx.store.query(SETTINGS_COLLECTION, limit=1)
     except Exception:
-        doc = None
-    data = getattr(doc, "data", None) if doc else None
-    if not isinstance(data, dict):
-        data = {}
-    return {**DEFAULT_SETTINGS, **data}
+        return dict(DEFAULT_SETTINGS)
+    docs = getattr(page, "data", None) or []
+    if docs and isinstance(getattr(docs[0], "data", None), dict):
+        return {**DEFAULT_SETTINGS, **docs[0].data}
+    return dict(DEFAULT_SETTINGS)
 
 
 async def save_settings(ctx, values: dict) -> dict:
+    """Upsert the settings doc (one per user, baseline SDK ops only)."""
     current = await load_settings(ctx)
     merged = {**current, **{k: v for k, v in values.items() if v is not None}}
-    try:
-        doc = await ctx.store.get(SETTINGS_COLLECTION, SETTINGS_KEY)
-    except Exception:
-        doc = None
-    if doc:
-        await ctx.store.update(SETTINGS_COLLECTION, SETTINGS_KEY, merged)
+
+    page = await ctx.store.query(SETTINGS_COLLECTION, limit=1)
+    docs = getattr(page, "data", None) or []
+    if docs:
+        await ctx.store.update(SETTINGS_COLLECTION, docs[0].id, merged)
     else:
-        set_fn = getattr(ctx.store, "set", None)
-        if callable(set_fn):
-            await set_fn(f"{SETTINGS_COLLECTION}/{SETTINGS_KEY}", merged)
-        else:
-            await ctx.store.update(SETTINGS_COLLECTION, SETTINGS_KEY, merged)
+        await ctx.store.create(SETTINGS_COLLECTION, merged)
     return merged
 
 

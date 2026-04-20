@@ -21,7 +21,8 @@ def _ctx(cfg: dict | None = None) -> MockContext:
         "default_language": "eng",
         "save_history": True,
     }
-    ctx.store._data.setdefault("ocr_tool", {})["settings"] = data
+    if data:
+        ctx.store._data.setdefault("ocr_settings", {})["seed"] = data
     return ctx
 
 
