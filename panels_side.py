@@ -1,12 +1,13 @@
-"""Left sidebar + right Settings panel."""
+"""Left sidebar (stats + recent) and right workspace (drop-zone-first UI)."""
 from __future__ import annotations
 
 from imperal_sdk import ui
 
-from app import ext, load_settings, server_ready
+from app import ext, load_settings, HISTORY_COLLECTION
+
 
 LANG_OPTIONS = [
-    {"value": "auto", "label": "Auto (EN + RU)"},
+    {"value": "auto", "label": "Auto-detect (EN + RU)"},
     {"value": "eng", "label": "English"},
     {"value": "rus", "label": "Russian"},
     {"value": "spa", "label": "Spanish"},
@@ -15,77 +16,98 @@ LANG_OPTIONS = [
 ]
 
 
+# ───────────────────── Left sidebar ──────────────────────
+
 @ext.panel("sidebar", slot="left", title="OCR Tool", icon="Scan",
-           default_width=220)
+           default_width=220,
+           refresh="on_event:ocr.extracted,ocr.settings.saved")
 async def sidebar_panel(ctx):
     s = await load_settings(ctx)
 
-    if not server_ready(s):
-        return ui.Stack(children=[
-            ui.Header(text="OCR Tool", level=4),
-            ui.Alert(message="Server not configured", type="warning"),
-            ui.Text(content="Open Settings panel →", variant="caption"),
-        ])
+    # Stats
+    try:
+        page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=200)
+        docs = getattr(page, "data", []) or []
+        count = len(docs)
+        words = sum(int(d.data.get("word_count", 0) or 0) for d in docs)
+    except Exception:
+        count, words = 0, 0
 
     return ui.Stack(children=[
         ui.Header(text="OCR Tool", level=4),
-        ui.Text(
-            content=(s.get("server_url", "").replace("https://", "")[:32]) or "server",
-            variant="caption",
-        ),
+        ui.Text(content="Tesseract. 1 action per extraction.", variant="caption"),
         ui.Divider(),
-        ui.Button(label="New Extraction", icon="Plus", variant="primary",
-                  full_width=True, on_click=ui.Call("__panel__workspace")),
-        ui.Button(label="History", icon="Clock", variant="secondary",
-                  full_width=True, on_click=ui.Call("history", limit=20)),
+        ui.Stats(children=[
+            ui.Stat(label="Extractions", value=str(count), color="blue"),
+            ui.Stat(label="Total words", value=str(words), color="violet"),
+        ]),
+        ui.Divider(),
+        ui.Text(content="Default language", variant="caption"),
+        ui.Text(content=(s.get("default_language", "auto") or "auto").upper()),
         ui.Divider(),
         ui.Text(
-            content="Ask Webbee: 'extract text from this image' and attach a file.",
+            content="Drop an image into the main panel or ask Webbee: 'extract text from this image'.",
             variant="caption",
         ),
     ])
 
 
-def _masked(value: str) -> str:
-    if not value:
-        return ""
-    if len(value) <= 8:
-        return "••••"
-    return "••••" + value[-4:]
+# ─────────────── Right workspace (tabs) ────────────────
 
-
-@ext.panel("settings", slot="right", title="Settings", icon="Settings",
-           default_width=300, refresh="on_event:ocr.settings.saved")
-async def settings_panel(ctx):
-    """Right-side settings. Inputs are DIRECT children of ui.Form — wrapping
-    them in Stacks would drop the values from the submit payload."""
-    s = await load_settings(ctx)
-
-    status = ui.Badge(
-        label=("Server ✓" if server_ready(s) else "Server ✗"),
-        color=("green" if server_ready(s) else "red"),
+def _drop_zone(s: dict) -> ui.UINode:
+    return ui.FileUpload(
+        accept="image/*",
+        max_size_mb=10,
+        max_files=1,
+        on_upload=ui.Call("extract",
+                          image_b64="$value",
+                          language=s.get("default_language", "auto"),
+                          preserve_layout=bool(s.get("preserve_layout", False))),
+        param_name="image_b64",
     )
 
-    form = ui.Form(
-        action="save_settings",
-        submit_label="Save",
-        children=[
-            ui.Header(text="Server", level=5),
-            ui.Input(
-                placeholder="Server URL — https://mos.lexa-lox.xyz",
-                value=s.get("server_url", ""),
-                param_name="server_url",
-            ),
-            ui.Input(
-                placeholder=(
-                    f"Server API Key — current {_masked(s.get('server_api_key', ''))}"
-                    if s.get("server_api_key")
-                    else "Server API Key — paste from VPS .env"
-                ),
-                value="",
-                param_name="server_api_key",
-            ),
 
+def _result_card(s: dict) -> ui.UINode:
+    text = s.get("last_result", "") or ""
+    lang = s.get("last_language", "") or ""
+    words = s.get("last_words", 0) or 0
+    if not text:
+        return ui.Empty(
+            message="Drop an image above to see the extracted text here.",
+            icon="FileText",
+        )
+    return ui.Stack(children=[
+        ui.Stack(children=[
+            ui.Badge(label=lang.upper() if lang else "—", color="blue"),
+            ui.Badge(label=f"{words} words", color="violet"),
+        ], direction="horizontal"),
+        ui.Code(code=text, language="text"),
+        ui.Text(content="Select the text in the box above and copy it.",
+                variant="caption"),
+    ])
+
+
+def _history_list(items: list[dict]) -> ui.UINode:
+    if not items:
+        return ui.Empty(message="No extractions yet.", icon="Clock")
+    list_items = []
+    for h in items[:50]:
+        list_items.append(ui.ListItem(
+            id=str(h.get("timestamp", 0)),
+            title=f"{h.get('word_count', 0)} words",
+            subtitle=(h.get("text", "") or "")[:120],
+            meta=h.get("language", ""),
+            icon="FileText",
+            badge=ui.Badge(label=h.get("language", "—"), color="blue"),
+        ))
+    return ui.List(items=list_items, searchable=True)
+
+
+def _preferences_form(s: dict) -> ui.UINode:
+    return ui.Form(
+        action="save_settings",
+        submit_label="Save preferences",
+        children=[
             ui.Header(text="Defaults", level=5),
             ui.Select(
                 param_name="default_language",
@@ -106,9 +128,38 @@ async def settings_panel(ctx):
         ],
     )
 
+
+@ext.panel("workspace", slot="right", title="OCR Tool", icon="Scan",
+           default_width=540,
+           refresh="on_event:ocr.extracted,ocr.settings.saved")
+async def workspace_panel(ctx):
+    """Drop-zone-first UI. Only tabs the user cares about: Extract,
+    History, Preferences. No server settings — that's infra, not UX."""
+    s = await load_settings(ctx)
+
+    # History
+    try:
+        page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=50)
+        docs = getattr(page, "data", []) or []
+        items = sorted([d.data for d in docs],
+                       key=lambda x: x.get("timestamp", 0), reverse=True)
+    except Exception:
+        items = []
+
+    extract_tab = ui.Stack(children=[
+        ui.Section(title="Drop an image", children=[_drop_zone(s)]),
+        ui.Section(title="Result", children=[_result_card(s)]),
+    ])
+
     return ui.Stack(children=[
-        ui.Header(text="Settings", level=3),
-        status,
-        ui.Divider(),
-        form,
+        ui.Header(text="OCR Tool", level=3),
+        ui.Text(
+            content="Tesseract 5 runs on our server — English, Russian, Spanish, German, French. 1 action per extraction.",
+            variant="caption",
+        ),
+        ui.Tabs(tabs=[
+            {"label": "Extract", "content": extract_tab},
+            {"label": f"History ({len(items)})", "content": _history_list(items)},
+            {"label": "Preferences", "content": _preferences_form(s)},
+        ], default_tab=0),
     ])

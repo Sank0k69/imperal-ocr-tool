@@ -1,13 +1,13 @@
 {
   "app_id": "ocr-tool",
-  "version": "2.0.0",
-  "description": "Image-to-text extraction via Tesseract on our server. No AI tokens.",
-  "category": "tools",
+  "version": "2.1.0",
+  "description": "Image-to-text extraction via Tesseract on our server. No AI tokens — 1 action per extraction.",
+  "category": "productivity",
   "capabilities": [],
   "tools": [
     {
       "name": "ocr",
-      "description": "Image-to-text extraction. Runs Tesseract on our server, no AI quota burned.",
+      "description": "Drop screenshots, photos, documents, receipts, handwritten notes — get the text back.",
       "scopes": [
         "store.read",
         "store.write",
@@ -20,19 +20,13 @@
     },
     {
       "name": "__panel__workspace",
-      "description": "Panel: OCR Tool workspace",
+      "description": "Panel: OCR workspace (drop zone + result + history + preferences)",
       "scopes": [],
       "parameters": {"params": {"type": "string", "required": false}}
     },
     {
       "name": "__panel__sidebar",
-      "description": "Panel: Sidebar",
-      "scopes": [],
-      "parameters": {"params": {"type": "string", "required": false}}
-    },
-    {
-      "name": "__panel__settings",
-      "description": "Panel: Settings",
+      "description": "Panel: Sidebar (usage stats)",
       "scopes": [],
       "parameters": {"params": {"type": "string", "required": false}}
     }

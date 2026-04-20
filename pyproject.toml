@@ -1,7 +1,7 @@
 [project]
 name = "ocr-tool"
-version = "2.0.0"
-description = "Image-to-text extraction via Tesseract on our server. No AI tokens."
+version = "2.1.0"
+description = "Image-to-text extraction via Tesseract on our server. No AI tokens — 1 action per extraction."
 requires-python = ">=3.10"
 dependencies = ["imperal-sdk>=1.5.16"]
 
@@ -11,7 +11,7 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
 [tool.setuptools]
 py-modules = [
     "main", "app", "api_client", "params",
-    "handlers", "panels_main", "panels_side",
+    "handlers", "panels_side",
 ]
 
 [tool.pytest.ini_options]
