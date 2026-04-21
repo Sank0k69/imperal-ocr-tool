@@ -89,7 +89,7 @@ async def fn_extract(ctx, params: ExtractParams) -> ActionResult:
 @chat.function("history", description="Recent OCR extractions.", action_type="read")
 async def fn_history(ctx, params: HistoryQueryParams) -> ActionResult:
     """Return the user's recent extractions."""
-    page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=params.limit)
+    page = await ctx.store.query(HISTORY_COLLECTION, limit=params.limit)
     docs = getattr(page, "data", []) if page is not None else []
     items = sorted(
         [d.data for d in docs],

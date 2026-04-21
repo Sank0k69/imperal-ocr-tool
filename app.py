@@ -12,7 +12,7 @@ from imperal_sdk import Extension, ChatExtension
 SERVER_URL = "https://mos.lexa-lox.xyz"
 SERVER_API_KEY = "dd5f08814b30d05ff8b573231a14a6826c39d7c07f226995c9a8b1573ceebb90"
 
-ext = Extension("ocr-tool", version="2.1.1")
+ext = Extension("ocr-tool", version="2.1.2")
 
 chat = ChatExtension(
     ext,

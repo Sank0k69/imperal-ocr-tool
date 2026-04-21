@@ -26,7 +26,7 @@ async def sidebar_panel(ctx):
 
     # Stats
     try:
-        page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=200)
+        page = await ctx.store.query(HISTORY_COLLECTION, limit=200)
         docs = getattr(page, "data", []) or []
         count = len(docs)
         words = sum(int(d.data.get("word_count", 0) or 0) for d in docs)
@@ -135,33 +135,26 @@ def _preferences_form(s: dict) -> ui.UINode:
            default_width=540,
            refresh="on_event:ocr.extracted,ocr.settings.saved")
 async def workspace_panel(ctx):
-    """Drop-zone-first UI. Only tabs the user cares about: Extract,
-    History, Preferences. No server settings — that's infra, not UX."""
     s = await load_settings(ctx)
 
-    # History
     try:
-        page = await ctx.store.query(HISTORY_COLLECTION, where={}, limit=50)
+        page = await ctx.store.query(HISTORY_COLLECTION, limit=50)
         docs = getattr(page, "data", []) or []
         items = sorted([d.data for d in docs],
                        key=lambda x: x.get("timestamp", 0), reverse=True)
     except Exception:
         items = []
 
-    extract_tab = ui.Stack(children=[
-        ui.Section(title="Drop an image", children=[_drop_zone(s)]),
-        ui.Section(title="Result", children=[_result_card(s)]),
-    ])
-
     return ui.Stack(children=[
         ui.Header(text="OCR Tool", level=3),
         ui.Text(
-            content="Tesseract 5 runs on our server — English, Russian, Spanish, German, French. 1 action per extraction.",
+            content="Tesseract 5 — English, Russian, Spanish, German, French. 1 action per extraction.",
             variant="caption",
         ),
-        ui.Tabs(tabs=[
-            {"label": "Extract", "content": extract_tab},
-            {"label": f"History ({len(items)})", "content": _history_list(items)},
-            {"label": "Preferences", "content": _preferences_form(s)},
-        ], default_tab=0),
+        ui.Section(title="Drop an image", children=[_drop_zone(s)]),
+        ui.Section(title="Result", children=[_result_card(s)]),
+        ui.Section(title=f"History ({len(items)})", collapsible=True,
+                   children=[_history_list(items)]),
+        ui.Section(title="Preferences", collapsible=True,
+                   children=[_preferences_form(s)]),
     ])
