@@ -129,29 +129,9 @@ def _preferences_form(s: dict) -> ui.UINode:
 
 
 @ext.panel("workspace", slot="right", title="OCR Tool", icon="Scan",
-           default_width=540,
-           refresh="on_event:ocr.extracted")
+           default_width=540)
 async def workspace_panel(ctx):
-    s = await load_settings(ctx)
-
-    try:
-        page = await ctx.store.query(HISTORY_COLLECTION, limit=50)
-        docs = getattr(page, "data", []) or []
-        items = sorted([d.data for d in docs],
-                       key=lambda x: x.get("timestamp", 0), reverse=True)
-    except Exception:
-        items = []
-
     return ui.Stack(children=[
         ui.Header(text="OCR Tool", level=3),
-        ui.Text(
-            content="Tesseract 5 — English, Russian, Spanish, German, French. 1 action per extraction.",
-            variant="caption",
-        ),
-        ui.Section(title="Drop an image", children=[_drop_zone(s)]),
-        ui.Section(title="Result", children=[_result_card(s)]),
-        ui.Section(title=f"History ({len(items)})", collapsible=True,
-                   children=[_history_list(items)]),
-        ui.Section(title="Preferences", collapsible=True,
-                   children=[_preferences_form(s)]),
+        ui.Alert(message="Panel is alive. Diagnostics in progress.", type="info"),
     ])

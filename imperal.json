@@ -1,6 +1,6 @@
 {
   "app_id": "ocr-tool",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Image-to-text extraction via Tesseract on our server. No AI tokens — 1 action per extraction.",
   "category": "productivity",
   "capabilities": [],
