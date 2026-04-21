@@ -20,7 +20,7 @@ LANG_OPTIONS = [
 
 @ext.panel("sidebar", slot="left", title="OCR Tool", icon="Scan",
            default_width=220,
-           refresh="on_event:ocr.extracted,ocr.settings.saved")
+           refresh="on_event:ocr.extracted")
 async def sidebar_panel(ctx):
     s = await load_settings(ctx)
 
@@ -133,7 +133,7 @@ def _preferences_form(s: dict) -> ui.UINode:
 
 @ext.panel("workspace", slot="right", title="OCR Tool", icon="Scan",
            default_width=540,
-           refresh="on_event:ocr.extracted,ocr.settings.saved")
+           refresh="on_event:ocr.extracted")
 async def workspace_panel(ctx):
     s = await load_settings(ctx)
 
