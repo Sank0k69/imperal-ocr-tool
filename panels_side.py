@@ -74,10 +74,7 @@ def _result_card(s: dict) -> ui.UINode:
     lang = s.get("last_language", "") or ""
     words = s.get("last_words", 0) or 0
     if not text:
-        return ui.Empty(
-            message="Drop an image above to see the extracted text here.",
-            icon="FileText",
-        )
+        return ui.Empty(message="Drop an image above to see the extracted text here.")
     return ui.Stack(children=[
         ui.Stack(children=[
             ui.Badge(label=lang.upper() if lang else "—", color="blue"),
@@ -91,7 +88,7 @@ def _result_card(s: dict) -> ui.UINode:
 
 def _history_list(items: list[dict]) -> ui.UINode:
     if not items:
-        return ui.Empty(message="No extractions yet.", icon="Clock")
+        return ui.Empty(message="No extractions yet.")
     list_items = []
     for h in items[:50]:
         list_items.append(ui.ListItem(
